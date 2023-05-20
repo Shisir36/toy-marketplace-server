@@ -22,38 +22,62 @@ async function run() {
     await client.connect();
     const toyCollections = client.db("Toys-Marketplace").collection('Toys-Data')
 
-    app.get('/toys', async( req, res) => {
-        const cursor = toyCollections.find()
-        const result = await cursor.toArray();
-        res.send(result);
+    app.get('/toys', async (req, res) => {
+      const cursor = toyCollections.find()
+      const result = await cursor.toArray();
+      res.send(result);
     })
-    app.get("/toys/:subcategory", async (req, res) => {
-        const text = req.params.subcategory;
-        const result = await toyCollections.find({
-            $or: [
-              { subCategory: { $regex: text, $options: "i" } },
-            ],
-          })
-          .toArray();
-        res.send(result);
-      });
-      app.get(`/toys/id/:toyId`, async (req, res) => {
-        const id = req.params.toyId;
-        console.log(id);
-        const query = { _id: new ObjectId(id) };
-        console.log(query); // Use ObjectId constructor to create ObjectId instance
-        const options = {
-            // Include only the `title` and `imdb` fields in the returned document
-            projection: { name: 1, price: 1,pictureUrl:1,sellerEmail:1,sellerName:1,subCategory:1,rating:1,quantity:1,description:1 },
-        };
-        const result = await toyCollections.findOne(query, options);
-        res.send(result);
-      });      
-    app.post("/toys", async(req, res) => {
-        const toy = req.body;
-        const result = await toyCollections.insertOne(toy)
-        res.send(result)
+    app.get('/toys/:subcategory', async (req, res) => {
+      const subcategory = req.params.subcategory;
+      const result = await toyCollections.find({
+        subCategory: { $regex: subcategory, $options: "i" }
+      }).toArray();
+      res.send(result);
+    });
+    app.get('/toysdata', async (req, res) => {
+      let query = {};
+      if (req.query?.email) {
+        query = { email: req.query.email };
+      }
+      const result = await toyCollections.find(query).toArray();
+      res.send(result);
+    });   
+    app.get('/toys/id/:toyId', async (req, res) => {
+      const id = req.params.toyId;
+      const data = { _id: new ObjectId(id) };
+      const options = {
+        projection: { name: 1, price: 1, pictureUrl: 1, email: 1, sellerName: 1, subCategory: 1, rating: 1, quantity: 1, description: 1 },
+      };
+      const result = await toyCollections.findOne(data, options);
+      res.send(result);
+    });
+    app.post("/toys", async (req, res) => {
+      const toy = req.body;
+      const result = await toyCollections.insertOne(toy)
+      res.send(result)
     })
+    app.delete('/toys/:id', async (req, res) => {
+      const id = req.params.id;
+      console.log(id);
+      const query = { _id: new ObjectId(id) };
+      console.log(query);
+       const result = await toyCollections.deleteOne(query);
+      console.log(result);
+       res.send(result); 
+    });
+    app.patch('/toys/:id', async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const updatedToy = req.body;
+      console.log(updatedToy);
+      const updateDoc = {
+          $set: {
+              status: updatedToy.status
+          },
+      };
+      const result = await toyCollections.updateOne(filter, updateDoc);
+      res.send(result);
+  })
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
