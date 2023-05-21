@@ -41,9 +41,17 @@ async function run() {
       if (req.query?.email) {
         query = { email: req.query.email };
       }
-      const result = await toyCollections.find(query).toArray();
+
+      let sortQuery = { price: 1 }; // Default sorting in ascending order
+
+      if (req.query?.sort === 'desc') {
+        sortQuery = { price: -1 }; // Sort in descending order
+      }
+
+      const result = await toyCollections.find(query).sort(sortQuery).toArray();
       res.send(result);
     });
+
 
     app.get('/updateData', async (req, res) => {
       let query = {};
@@ -53,7 +61,7 @@ async function run() {
       const result = await toyCollections.find(query).toArray();
       res.send(result);
     });
-    
+
     app.get('/toys/id/:toyId', async (req, res) => {
       const id = req.params.toyId;
       const data = { _id: new ObjectId(id) };
@@ -74,7 +82,7 @@ async function run() {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await toyCollections.deleteOne(query);
-      res.send(result); 
+      res.send(result);
     });
 
     app.patch('/toys/:id', async (req, res) => {
@@ -91,7 +99,7 @@ async function run() {
       };
       const result = await toyCollections.updateOne(filter, updateDoc, options);
       res.send({ modifiedCount: result.modifiedCount });
-    });    
+    });
 
     app.get("/", (req, res) => {
       res.send("data is running");
