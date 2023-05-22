@@ -45,8 +45,8 @@ async function run() {
      const sort = req.query?.sort ? parseInt(req.query.sort) : 1;
      const cursor = toyCollections.find(query).sort({price: sort});
 
-      const result = await toyCollections.find(query).sort(sortQuery).toArray();
-      res.send(result);
+      const result = await cursor.toArray();
+      res.send(result)
     });
 
 
