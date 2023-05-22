@@ -42,11 +42,8 @@ async function run() {
         query = { email: req.query.email };
       }
 
-      let sortQuery = { price: 1 }; // Default sorting in ascending order
-
-      if (req.query?.sort === 'desc') {
-        sortQuery = { price: -1 }; // Sort in descending order
-      }
+     const sort = req.query?.sort ? parseInt(req.query.sort) : 1;
+     const cursor = toyCollections.find(query).sort({price: sort});
 
       const result = await toyCollections.find(query).sort(sortQuery).toArray();
       res.send(result);
